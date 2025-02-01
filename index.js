@@ -180,6 +180,78 @@ app.get("/github/repo", async (req, res) => {
     }
 })
 
+app.post("/github/repo/languages", async (req, res) => {
+    const token = req.headers.authorization?.split(" ")[1];
+    const {url} = req.body;
+    if(!url){
+        return res.status(400).json({ error: "url don't exist!" })
+    }
+
+    if(!token){
+        return res.status(400).json({ error: "token don't exist!" })
+    }
+
+    try {
+        const authorization = await new Token(db).validade(token)
+        
+        if(!authorization.status){
+            return res.status(400).json({ error: authorization.message })
+        }
+
+        if(!authorization.auth){
+            return res.status(401).json({ error: "Unauthorized token"}) 
+        }
+
+        const GithubService = new Github()
+        const response = await GithubService.getLanguagesRepo(url)
+
+        if(!response.status){
+            return res.status(500).json({ error: response.message });
+        }
+
+        return res.status(200).json({status:true, data: response.data, token: authorization.token, refreshed: authorization.refreshed});
+    } catch (err) {
+        console.error("github/languages: ", err)
+        return res.status(500).json({status: false, error: "Erro interno no servidor." });
+    }
+})
+
+app.post("/github/repo/id", async (req, res) => {
+    const token = req.headers.authorization?.split(" ")[1];
+    const {repoId} = req.body;
+    if(!repoId){
+        return res.status(400).json({ error: "repoId don't exist!" })
+    }
+
+    if(!token){
+        return res.status(400).json({ error: "token don't exist!" })
+    }
+
+    try {
+        const authorization = await new Token(db).validade(token)
+        
+        if(!authorization.status){
+            return res.status(400).json({ error: authorization.message })
+        }
+
+        if(!authorization.auth){
+            return res.status(401).json({ error: "Unauthorized token"}) 
+        }
+
+        const GithubService = new Github()
+        const response = await GithubService.getLanguagesRepo(repoId)
+
+        if(!response.status){
+            return res.status(500).json({ error: response.message });
+        }
+
+        return res.status(200).json({status:true, data: response.data, token: authorization.token, refreshed: authorization.refreshed});
+    } catch (err) {
+        console.error("github/languages: ", err)
+        return res.status(500).json({status: false, error: "Erro interno no servidor." });
+    }
+})
+
 app.post("/render/md", async(req, res) => {
     const token = req.headers.authorization?.split(" ")[1];
     const {markdownContent} = req.body;

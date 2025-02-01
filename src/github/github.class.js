@@ -34,4 +34,54 @@ module.exports = class Github {
             return {status: false, message: "Internal server error"}
         }
     }
+
+    /*
+        *@params {url: string} => languages git url
+        *@return {status: boolean, data: string[]}
+    */
+    async getLanguagesRepo(url){
+        try {
+            const repoResponse = await fetch(`${url}`);
+
+            if (!repoResponse.ok) {
+                return {status: false, message: "languages not found"}
+            }
+
+            const repoData = await repoResponse.json();
+
+            if (repoData) {
+                return {status: true, data: repoData}
+            } else {
+                return {status: false, message: "languages not exist"}
+            }
+        } catch (error) {
+            console.error('getLanguagesRepo:', error);
+            return {status: false, message: "Internal server error"}
+        }
+    }
+
+    /*
+        *@params {id: string} => languages git url
+        *@return {status: boolean, data: object}
+    */
+    async getRepoById(id){
+        try {
+            const repoResponse = await fetch(`${url}`);
+
+            if (!repoResponse.ok) {
+                return {status: false, message: "Failed to fetch repository data."}
+            }
+
+            const repoData = await repoResponse.json();
+
+            if (repoData) {
+                return {status: true, data: repoData}
+            } else {
+                return {status: false, message: "languages not exist"}
+            }
+        } catch (error) {
+            console.error('getRepoById:', error);
+            return {status: false, message: "Internal server error"}
+        }
+    }
 }
