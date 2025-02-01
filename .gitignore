@@ -1,0 +1,9 @@
+
+# Dependencias
+/node_modules
+
+# Arquivo de configuração
+.env.local
+
+# privates
+/src/private
