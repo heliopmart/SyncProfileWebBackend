@@ -23,6 +23,9 @@ const serviceAccount = {
     client_x509_cert_url: process.env.FIREBASE_CLIENT_X509_CERT_URL,
     universe_domain: process.env.FIREBASE_UNIVERSE_DOMAIN,
 }
+
+console.log(serviceAccount)
+
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
 });
