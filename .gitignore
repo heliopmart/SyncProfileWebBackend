@@ -4,6 +4,3 @@
 
 # Arquivo de configuração
 .env
-
-# privates
-/src/private
