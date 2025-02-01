@@ -24,7 +24,7 @@ const serviceAccount = {
     universe_domain: process.env.FIREBASE_UNIVERSE_DOMAIN,
 }
 
-console.log(serviceAccount)
+console.log(process.env)
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
