@@ -1,4 +1,4 @@
-// require("dotenv").config();
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const admin = require("firebase-admin");
@@ -24,7 +24,7 @@ const serviceAccount = {
     universe_domain: process.env.FIREBASE_UNIVERSE_DOMAIN,
 }
 
-console.log(process.env)
+console.log(serviceAccount.env)
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
