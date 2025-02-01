@@ -3,7 +3,7 @@
 /node_modules
 
 # Arquivo de configuração
-.env.local
+.env
 
 # privates
 /src/private
