@@ -58,7 +58,7 @@ module.exports = class Token{
 
         } catch (error) {
             console.error("Erro ao autenticar:", error);
-            return { status: false, message: "Erro no servidor" };
+            return { status: false, message: `Erro no servidor: ${error}` };
         }
     }
 

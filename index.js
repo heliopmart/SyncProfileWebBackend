@@ -24,8 +24,6 @@ const serviceAccount = {
     universe_domain: process.env.FIREBASE_UNIVERSE_DOMAIN,
 }
 
-console.log(serviceAccount)
-
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
 });
@@ -52,7 +50,7 @@ app.post("/token/auth", async (req, res) => {
         return res.status(200).json(response);
     } catch (error) {
         console.error("Erro ao autenticar:", error);
-        return res.status(500).json({ error: "Erro interno no servidor." });
+        return res.status(500).json({ error: `Erro interno no servidor. ${error}` });
     }
 });
 
