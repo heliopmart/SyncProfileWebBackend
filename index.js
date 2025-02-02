@@ -54,6 +54,30 @@ app.post("/token/auth", async (req, res) => {
     }
 });
 
+app.post("/token/validate", async (req, res) => {
+    const token = req.headers.authorization?.split(" ")[1];
+    if(!token){
+        return res.status(400).json({ error: "token don't exist!" })
+    }
+
+    try {
+        const authorization = await new Token(db).validade(token)
+        
+        if(!authorization.status){
+            return res.status(400).json({ error: authorization.message })
+        }
+
+        if(!authorization.auth){
+            return res.status(401).json({ error: "Unauthorized token"}) 
+        }
+        
+        return res.status(200).json({status: true, auth: authorization.auth, token: authorization.token, refreshed: authorization.refreshed})
+    } catch (err) {
+        console.error("/token/validate: ", err);
+        return res.status(500).json({status: false, error: "Erro interno no servidor." });
+    }
+});
+
 app.post("/azure/translate", async (req, res) => {
     const token = req.headers.authorization?.split(" ")[1];
     const {text, from, to} = req.body;
