@@ -275,7 +275,7 @@ app.post("/github/repo/id", async (req, res) => {
         }
 
         const GithubService = new Github()
-        const response = await GithubService.getLanguagesRepo(repoId)
+        const response = await GithubService.getRepoById(repoId)
 
         if(!response.status){
             return res.status(500).json({ error: response.message });
