@@ -66,7 +66,7 @@ module.exports = class Github {
     */
     async getRepoById(id){
         try {
-            const repoResponse = await fetch(`${url}`);
+            const repoResponse = await fetch(`https://api.github.com/repositories/${id}`);
 
             if (!repoResponse.ok) {
                 return {status: false, message: "Failed to fetch repository data."}
