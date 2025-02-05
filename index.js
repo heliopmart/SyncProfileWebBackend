@@ -31,7 +31,20 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-app.use(cors());
+const allowedOrigins = [
+'https://profile-web-git-main-heliopmarts-projects.vercel.app', // Seu domínio do Vercel
+'http://localhost:3000',  // Para desenvolvimento local
+];
+  
+app.use(cors({
+    origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {  // !origin permite requisições de ferramentas como Postman
+        callback(null, true);
+    } else {
+        callback(new Error('Not allowed by CORS'));
+    }
+    }
+}));
 app.use(express.json());
 
 
