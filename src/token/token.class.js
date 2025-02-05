@@ -91,6 +91,9 @@ module.exports = class Token{
                     }
                 }
 
+                // Buscar token no banco de dados
+                const storedTokenSnapshot = await this._db.collection("auth_token").doc(decoded.randomHash).get();
+
                 if (!storedTokenSnapshot.exists) {
                     console.log(`Error: Token in bd not exist: ${storedTokenSnapshot}`)
                     return {auth: false, status: true, token: null, refreshed: false }
@@ -122,6 +125,7 @@ module.exports = class Token{
 
                 return {auth: true, status: true, token: refreshedToken, refreshed: true }
             } catch (error) {
+                console.log(error)
                 return {status: false, message: "Erro interno ao verificar validade 2/"}   
             }
         } catch (error) {

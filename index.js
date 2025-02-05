@@ -103,9 +103,13 @@ app.post("/token/validate", async (req, res) => {
 });
 
 app.post("/azure/translate", async (req, res) => {
-    const token = req.headers.authorization?.split(" ")[1];
-    const {text, from, to} = req.body;
-    if(!text || !from || !to && !Array.isArray(to)){
+    const forwarded = req.headers["x-forwarded-for"];
+    const ip = forwarded ? forwarded.split(",")[0] : req.ip;
+    const nonce = req.headers["nonce"];
+    const token = req.headers["authorization"]?.split(" ")[1];
+
+    const {text, from, to, device} = req.body;
+    if(!text || !from || !to && !Array.isArray(to) || !ip || !nonce || device ){
         return res.status(400).json({ error: "text or from or to don't exist!" })
     }
 
@@ -114,7 +118,7 @@ app.post("/azure/translate", async (req, res) => {
     }
 
     try {
-        const authorization = await new Token(db).validade(token)
+        const authorization = await new Token(db).validade({ip, device}, token, nonce)
         
         if(!authorization.status){
             return res.status(400).json({ error: authorization.message })
@@ -138,9 +142,13 @@ app.post("/azure/translate", async (req, res) => {
 });
 
 app.post("/azure/md", async (req, res) => {
-    const token = req.headers.authorization?.split(" ")[1];
-    const {repoName} = req.body;
-    if(!repoName){
+    const forwarded = req.headers["x-forwarded-for"];
+    const ip = forwarded ? forwarded.split(",")[0] : req.ip;
+    const nonce = req.headers["nonce"];
+    const token = req.headers["authorization"]?.split(" ")[1];
+
+    const {repoName, device} = req.body;
+    if(!repoName || !device || !nonce || !ip){
         return res.status(400).json({ error: "fileName don't exist!" })
     }
 
@@ -149,7 +157,7 @@ app.post("/azure/md", async (req, res) => {
     }
 
     try {
-        const authorization = await new Token(db).validade(token)
+        const authorization = await new Token(db).validade({ip, device}, token, nonce)
         
         if(!authorization.status){
             return res.status(400).json({ error: authorization.message })
@@ -173,9 +181,13 @@ app.post("/azure/md", async (req, res) => {
 });
 
 app.post("/github/md", async (req, res) => {
-    const token = req.headers.authorization?.split(" ")[1];
-    const {repoName} = req.body;
-    if(!repoName){
+    const forwarded = req.headers["x-forwarded-for"];
+    const ip = forwarded ? forwarded.split(",")[0] : req.ip;
+    const nonce = req.headers["nonce"];
+    const token = req.headers["authorization"]?.split(" ")[1];
+
+    const {repoName, device} = req.body;
+    if(!repoName || !nonce || !ip || !device){
         return res.status(400).json({ error: "repo name don't exist!" })
     }
 
@@ -184,7 +196,7 @@ app.post("/github/md", async (req, res) => {
     }
 
     try {
-        const authorization = await new Token(db).validade(token)
+        const authorization = await new Token(db).validade({ip, device}, token, nonce)
         
         if(!authorization.status){
             return res.status(400).json({ error: authorization.message })
@@ -208,15 +220,23 @@ app.post("/github/md", async (req, res) => {
     }
 })
 
-app.get("/github/repo", async (req, res) => {
-    const token = req.headers.authorization?.split(" ")[1];
+app.post("/github/repo", async (req, res) => {
+    const forwarded = req.headers["x-forwarded-for"];
+    const ip = forwarded ? forwarded.split(",")[0] : req.ip;
+    const nonce = req.headers["nonce"];
+    const token = req.headers["authorization"]?.split(" ")[1];
+    const {device} = req.body;
+
+    if(!device || !ip || !nonce){
+        return res.status(400).json({ error: "Invalid Arguments" })
+    }
 
     if(!token){
         return res.status(400).json({ error: "token don't exist!" })
     }
 
     try {
-        const authorization = await new Token(db).validade(token)
+         const authorization = await new Token(db).validade({ip, device}, token, nonce)
         
         if(!authorization.status){
             return res.status(400).json({ error: authorization.message })
@@ -241,9 +261,13 @@ app.get("/github/repo", async (req, res) => {
 })
 
 app.post("/github/repo/languages", async (req, res) => {
-    const token = req.headers.authorization?.split(" ")[1];
-    const {url} = req.body;
-    if(!url){
+    const forwarded = req.headers["x-forwarded-for"];
+    const ip = forwarded ? forwarded.split(",")[0] : req.ip;
+    const nonce = req.headers["nonce"];
+    const token = req.headers["authorization"]?.split(" ")[1];
+
+    const {url, device} = req.body;
+    if(!url || !nonce || !ip || !device){
         return res.status(400).json({ error: "url don't exist!" })
     }
 
@@ -252,7 +276,7 @@ app.post("/github/repo/languages", async (req, res) => {
     }
 
     try {
-        const authorization = await new Token(db).validade(token)
+        const authorization = await new Token(db).validade({ip, device}, token, nonce)
         
         if(!authorization.status){
             return res.status(400).json({ error: authorization.message })
@@ -277,9 +301,13 @@ app.post("/github/repo/languages", async (req, res) => {
 })
 
 app.post("/github/repo/id", async (req, res) => {
-    const token = req.headers.authorization?.split(" ")[1];
-    const {repoId} = req.body;
-    if(!repoId){
+    const forwarded = req.headers["x-forwarded-for"];
+    const ip = forwarded ? forwarded.split(",")[0] : req.ip;
+    const nonce = req.headers["nonce"];
+    const token = req.headers["authorization"]?.split(" ")[1];
+
+    const {repoId, device} = req.body;
+    if(!repoId || !device || !nonce || !ip){
         return res.status(400).json({ error: "repoId don't exist!" })
     }
 
@@ -288,7 +316,7 @@ app.post("/github/repo/id", async (req, res) => {
     }
 
     try {
-        const authorization = await new Token(db).validade(token)
+        const authorization = await new Token(db).validade({ip, device}, token, nonce)
         
         if(!authorization.status){
             return res.status(400).json({ error: authorization.message })
@@ -313,9 +341,13 @@ app.post("/github/repo/id", async (req, res) => {
 })
 
 app.post("/render/md", async(req, res) => {
-    const token = req.headers.authorization?.split(" ")[1];
-    const {markdownContent} = req.body;
-    if(!markdownContent){
+    const forwarded = req.headers["x-forwarded-for"];
+    const ip = forwarded ? forwarded.split(",")[0] : req.ip;
+    const nonce = req.headers["nonce"];
+    const token = req.headers["authorization"]?.split(" ")[1];
+    
+    const {markdownContent, device} = req.body;
+    if(!markdownContent || !nonce || !ip || !device){
         return res.status(400).json({ error: "markdownContent don't exist!" })
     }
 
@@ -324,7 +356,7 @@ app.post("/render/md", async(req, res) => {
     }
 
     try {
-        const authorization = await new Token(db).validade(token)
+        const authorization = await new Token(db).validade({ip, device}, token, nonce)
         
         if(!authorization.status){
             return res.status(400).json({ error: authorization.message })
