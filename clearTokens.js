@@ -49,7 +49,6 @@ const clearCollection = async (collectionPath) => {
     } catch (error) {
       console.error("❌ Erro ao limpar coleção:", error);
     }
-  };
+    };
   
-  // Executa a função para deletar todos os documentos da coleção especificada
-  clearCollection(COLLECTION_NAME);
+  module.exports = clearCollection(COLLECTION_NAME);

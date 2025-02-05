@@ -6,6 +6,7 @@ const Token = require("./src/token/token.class")
 const Github = require("./src/github/github.class")
 const Azure = require("./src/azure/azure.class")
 const Render = require("./src/render/render.class")
+const clearCollection = require("./clearTokens")
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -32,6 +33,8 @@ const db = admin.firestore();
 
 app.use(cors());
 app.use(express.json());
+
+
 
 app.post("/token/auth", async (req, res) => {
     const { key, secret, _TCD } = req.body;
@@ -323,5 +326,14 @@ app.post("/render/md", async(req, res) => {
         return res.status(500).json({status: false, error: "Erro interno no servidor." });
     }
 })
+
+cron.schedule('0 3 * * *', () => {
+    try{
+        clearCollection();
+        console.log("Tokens Removed");
+    }catch(error){
+        console.log("Remove tokens error: " + error);
+    }
+});
 
 app.listen(PORT);

@@ -20,6 +20,7 @@
     "express": "^4.21.2",
     "firebase-admin": "^13.0.2",
     "jsonwebtoken": "^9.0.2",
+    "node-cron": "^3.0.3",
     "remark": "^15.0.1",
     "remark-html": "^16.0.1"
   },
