@@ -75,9 +75,21 @@ module.exports = class Token{
             const device = dataUser.device
 
             try {
-                const decoded = jwt.verify(token, `${process.env.JWT_SECRET_KEYS}${process.env.JWT_KEYS}`);
-
-                const storedTokenSnapshot = await this._db.collection("auth_token").doc(decoded.randomHash).get();
+                let decoded;
+                try {
+                    decoded = jwt.verify(token, `${process.env.JWT_SECRET_KEYS}${process.env.JWT_KEYS}`);
+                } catch (error) {
+                    // Se o erro for de expiração, remover o token e criar um novo
+                    if (error.name === "TokenExpiredError") {
+                        console.log(`Token expirado: ${token}`);
+                        
+                        await this._db.collection("auth_token").doc(token).delete();
+                        const newTokenResponse = await this.auth(dataUser);
+                        return { auth: true, status: true, token: newTokenResponse.token, refreshed: true };
+                    } else {
+                        return { status: false, message: "Erro ao verificar validade do token" };
+                    }
+                }
 
                 if (!storedTokenSnapshot.exists) {
                     console.log(`Error: Token in bd not exist: ${storedTokenSnapshot}`)
@@ -86,7 +98,7 @@ module.exports = class Token{
 
                 const storedData = storedTokenSnapshot.data();
 
-                if (storedData.ip != ip || storedData.device != device || storedData.token != token || (decoded.nonce != storedData.nonce) || decoded.nonce == newNonce) {
+                if (storedData.ip != ip || storedData.device != device || storedData.token != token || (decoded.nonce != storedData.nonce) || decoded.nonce == newNonce) {                    
                     return {auth: false, status: true, token: null, refreshed: false }
                 }
 
@@ -104,6 +116,7 @@ module.exports = class Token{
                 await this._db.collection("auth_token").doc(decoded.randomHash).update({
                     token: refreshedToken,
                     nonce: newNonce,
+                    usage_at: new Date().toISOString(),
                     refresh_at: new Date().toISOString()
                 });
 

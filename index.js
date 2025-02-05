@@ -49,15 +49,18 @@ app.use(cors({
 app.use(express.json());
 
 app.post("/token/auth", async (req, res) => {
-    const { ip, device } = req.body;
+    const {device } = req.body;
+    const forwarded = req.headers["x-forwarded-for"];
+    const ip = forwarded ? forwarded.split(",")[0] : req.ip;
     const nonce = req.headers["nonce"];
+    
     if (!ip || !device || !nonce) {
         return res.status(400).json({ error: "Params don't exist!" })
     }
 
     try {
         const tokenService = new Token(db);
-        const response = await tokenService.auth(req.body, nonce);
+        const response = await tokenService.auth({device, ip}, nonce);
 
         if (!response.status) {
             return res.status(401).json({ error: response.message });
@@ -71,7 +74,9 @@ app.post("/token/auth", async (req, res) => {
 });
 
 app.post("/token/validate", async (req, res) => {
-    const {ip, device } = req.body;
+    const {device } = req.body;
+    const forwarded = req.headers["x-forwarded-for"];
+    const ip = forwarded ? forwarded.split(",")[0] : req.ip;
     const nonce = req.headers["nonce"];
     const token = req.headers["authorization"]?.split(" ")[1];
 
