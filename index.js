@@ -33,8 +33,8 @@ admin.initializeApp({
 const db = admin.firestore();
 
 const allowedOrigins = [
-'https://profile-web-git-main-heliopmarts-projects.vercel.app', // Seu domínio do Vercel
-'http://localhost:3000',  // Para desenvolvimento local
+'https://profile-web-git-main-heliopmarts-projects.vercel.app',
+'http://localhost:3000', 
 ];
   
 app.use(cors({
@@ -47,8 +47,6 @@ app.use(cors({
     }
 }));
 app.use(express.json());
-
-
 
 app.post("/token/auth", async (req, res) => {
     const { key, secret, _TCD } = req.body;
@@ -132,8 +130,8 @@ app.post("/azure/translate", async (req, res) => {
 
 app.post("/azure/md", async (req, res) => {
     const token = req.headers.authorization?.split(" ")[1];
-    const {fileName} = req.body;
-    if(!fileName){
+    const {repoName} = req.body;
+    if(!repoName){
         return res.status(400).json({ error: "fileName don't exist!" })
     }
 
@@ -152,7 +150,7 @@ app.post("/azure/md", async (req, res) => {
             return res.status(401).json({ error: "Unauthorized token"}) 
         }
 
-        const response = await new Azure().getMdFile(req.body.fileName)
+        const response = await new Azure().getMdFile(req.body.repoName)
         
         if(!response.status){
             return res.status(500).json({ error: response.message}) 

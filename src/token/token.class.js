@@ -14,11 +14,14 @@ module.exports = class Token{
         if(!auth.key || !auth.secret)
             return {status: false, mensage: "API or Secret not exist, Invalid credentials"}
 
+        const Keydecoded = jwt.verify(auth.key, process.env.JWT_KEYS, { ignoreExpiration: true });
+        const Secretdecoded = jwt.verify(auth.secret, process.env.JWT_SECRET_KEYS, { ignoreExpiration: true });
+
         try {
             const clientsRef = this._db.collection("auth_backend");
             const querySnapshot = await clientsRef
-                .where("api_key", "==", auth.key)
-                .where("secret_key", "==", auth.secret)
+                .where("api_key", "==", Keydecoded)
+                .where("secret_key", "==", Secretdecoded)
                 .limit(1)
                 .get();
 
