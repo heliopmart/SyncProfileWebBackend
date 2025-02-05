@@ -343,7 +343,7 @@ app.post("/render/md", async(req, res) => {
 
 cron.schedule('0 3 * * *', () => {
     try{
-        clearCollection();
+        clearCollection(db);
         console.log("Tokens Removed");
     }catch(error){
         console.log("Remove tokens error: " + error);
