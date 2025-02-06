@@ -117,27 +117,33 @@ app.post("/azure/translate", async (req, res) => {
         return res.status(400).json({ error: "token don't exist!" })
     }
 
+    const authorization = await new Token(db).validade({ip, device}, token, nonce)
+    
+    if(!authorization.status){
+        return res.status(400).json({ error: authorization.message })
+    }
+
+    if(!authorization.auth){
+        return res.status(401).json({ error: "Unauthorized token"}) 
+    }
+
     try {
-        const authorization = await new Token(db).validade({ip, device}, token, nonce)
-        
-        if(!authorization.status){
-            return res.status(400).json({ error: authorization.message })
-        }
-
-        if(!authorization.auth){
-            return res.status(401).json({ error: "Unauthorized token"}) 
-        }
-
         const response = await new Azure().translate(req.body)
         
         if(!response.status){
-            return res.status(500).json({ error: response.message}) 
+            const restartToken = await new Token(db).RestartTokenByError({ip, device}, token, nonce);
+            return res.status(201).json({...restartToken, data: null});
         }
         
         return res.status(200).json({status: true, data: response.data, token: authorization.token, refreshed: authorization.refreshed})
     } catch (err) {
         console.error("/azure/translate: ", err);
-        return res.status(500).json({status: false, error: "Erro interno no servidor." });
+        if(authorization.auth === true){
+            const restartToken = await new Token(db).RestartTokenByError({ip, device}, token, nonce);
+            return res.status(201).json({...restartToken, data: null});
+        }else{
+            return res.status(500).json({status: false, error: "Erro interno no servidor e token não autorizado" });
+        }
     }
 });
 
@@ -156,27 +162,32 @@ app.post("/azure/md", async (req, res) => {
         return res.status(400).json({ error: "token don't exist!" })
     }
 
+    const authorization = await new Token(db).validade({ip, device}, token, nonce)
+    
+    if(!authorization.status){
+        return res.status(400).json({ error: authorization.message })
+    }
+
+    if(!authorization.auth){
+        return res.status(401).json({ error: "Unauthorized token"}) 
+    }
     try {
-        const authorization = await new Token(db).validade({ip, device}, token, nonce)
-        
-        if(!authorization.status){
-            return res.status(400).json({ error: authorization.message })
-        }
-
-        if(!authorization.auth){
-            return res.status(401).json({ error: "Unauthorized token"}) 
-        }
-
         const response = await new Azure().getMdFile(req.body.repoName)
         
         if(!response.status){
-            return res.status(500).json({ error: response.message}) 
+            const restartToken = await new Token(db).RestartTokenByError({ip, device}, token, nonce);
+            return res.status(201).json({...restartToken, data: null});
         }
         
         return res.status(200).json({status: true, data: response.data, token: authorization.token, refreshed: authorization.refreshed})
     } catch (err) {
         console.error("azure/md: ", err)
-        return res.status(500).json({status: false, error: "Erro interno no servidor." });
+        if(authorization.auth === true){
+            const restartToken = await new Token(db).RestartTokenByError({ip, device}, token, nonce);
+            return res.status(201).json({...restartToken, data: null});
+        }else{
+            return res.status(500).json({status: false, error: "Erro interno no servidor e token não autorizado" });
+        }
     }
 });
 
@@ -195,28 +206,34 @@ app.post("/github/md", async (req, res) => {
         return res.status(400).json({ error: "token don't exist!" })
     }
 
+    const authorization = await new Token(db).validade({ip, device}, token, nonce)
+    
+    if(!authorization.status){
+        return res.status(400).json({ error: authorization.message })
+    }
+
+    if(!authorization.auth){
+        return res.status(401).json({ error: "Unauthorized token"}) 
+    }
+
     try {
-        const authorization = await new Token(db).validade({ip, device}, token, nonce)
-        
-        if(!authorization.status){
-            return res.status(400).json({ error: authorization.message })
-        }
-
-        if(!authorization.auth){
-            return res.status(401).json({ error: "Unauthorized token"}) 
-        }
-
         const GithubService = new Github()
         const response = await GithubService.get_md(repoName)
 
         if(!response.status){
-            return res.status(500).json({ error: response.message });
+            const restartToken = await new Token(db).RestartTokenByError({ip, device}, token, nonce);
+            return res.status(201).json({...restartToken, data: null});
         }
 
         return res.status(200).json({status:true, data: response.data, token: authorization.token, refreshed: authorization.refreshed});
     } catch (err) {
         console.error("github/md: ", err)
-        return res.status(500).json({status: false, error: "Erro interno no servidor." });
+        if(authorization.auth === true){
+            const restartToken = await new Token(db).RestartTokenByError({ip, device}, token, nonce);
+            return res.status(201).json({...restartToken, data: null});
+        }else{
+            return res.status(500).json({status: false, error: "Erro interno no servidor e token não autorizado" });
+        }
     }
 })
 
@@ -235,28 +252,33 @@ app.post("/github/repo", async (req, res) => {
         return res.status(400).json({ error: "token don't exist!" })
     }
 
+    const authorization = await new Token(db).validade({ip, device}, token, nonce)
+    
+    if(!authorization.status){
+        return res.status(400).json({ error: authorization.message })
+    }
+
+    if(!authorization.auth){
+        return res.status(401).json({ error: "Unauthorized token"}) 
+    }
     try {
-         const authorization = await new Token(db).validade({ip, device}, token, nonce)
-        
-        if(!authorization.status){
-            return res.status(400).json({ error: authorization.message })
-        }
-
-        if(!authorization.auth){
-            return res.status(401).json({ error: "Unauthorized token"}) 
-        }
-
         const GithubService = new Github()
         const response = await GithubService.get_repos()
 
         if(!response.status){
-            return res.status(500).json({ error: response.message });
+            const restartToken = await new Token(db).RestartTokenByError({ip, device}, token, nonce);
+            return res.status(201).json({...restartToken, data: null});
         }
 
         return res.status(200).json({status: true, data: response.data, token: authorization.token, refreshed: authorization.refreshed});
     } catch (err) {
         console.error("github/repo: ", err)
-        return res.status(500).json({status: false, error: "Erro interno no servidor." });
+        if(authorization.auth === true){
+            const restartToken = await new Token(db).RestartTokenByError({ip, device}, token, nonce);
+            return res.status(201).json({...restartToken, data: null});
+        }else{
+            return res.status(500).json({status: false, error: "Erro interno no servidor e token não autorizado" });
+        }
     }
 })
 
@@ -275,28 +297,34 @@ app.post("/github/repo/languages", async (req, res) => {
         return res.status(400).json({ error: "token don't exist!" })
     }
 
+    const authorization = await new Token(db).validade({ip, device}, token, nonce)
+    
+    if(!authorization.status){
+        return res.status(400).json({ error: authorization.message })
+    }
+
+    if(!authorization.auth){
+        return res.status(401).json({ error: "Unauthorized token"}) 
+    }
+
     try {
-        const authorization = await new Token(db).validade({ip, device}, token, nonce)
-        
-        if(!authorization.status){
-            return res.status(400).json({ error: authorization.message })
-        }
-
-        if(!authorization.auth){
-            return res.status(401).json({ error: "Unauthorized token"}) 
-        }
-
         const GithubService = new Github()
         const response = await GithubService.getLanguagesRepo(url)
 
         if(!response.status){
-            return res.status(500).json({ error: response.message });
+            const restartToken = await new Token(db).RestartTokenByError({ip, device}, token, nonce);
+            return res.status(201).json({...restartToken, data: null});
         }
 
         return res.status(200).json({status:true, data: response.data, token: authorization.token, refreshed: authorization.refreshed});
     } catch (err) {
         console.error("github/languages: ", err)
-        return res.status(500).json({status: false, error: "Erro interno no servidor." });
+        if(authorization.auth === true){
+            const restartToken = await new Token(db).RestartTokenByError({ip, device}, token, nonce);
+            return res.status(201).json({...restartToken, data: null});
+        }else{
+            return res.status(500).json({status: false, error: "Erro interno no servidor e token não autorizado" });
+        }
     }
 })
 
@@ -315,28 +343,35 @@ app.post("/github/repo/id", async (req, res) => {
         return res.status(400).json({ error: "token don't exist!" })
     }
 
+    const authorization = await new Token(db).validade({ip, device}, token, nonce)
+    
+    if(!authorization.status){
+        return res.status(400).json({ error: authorization.message })
+    }
+
+    if(!authorization.auth){
+        return res.status(401).json({ error: "Unauthorized token"}) 
+    }
+
     try {
-        const authorization = await new Token(db).validade({ip, device}, token, nonce)
-        
-        if(!authorization.status){
-            return res.status(400).json({ error: authorization.message })
-        }
-
-        if(!authorization.auth){
-            return res.status(401).json({ error: "Unauthorized token"}) 
-        }
-
         const GithubService = new Github()
         const response = await GithubService.getRepoById(repoId)
 
         if(!response.status){
-            return res.status(500).json({ error: response.message });
+            console.log("ERROR 500, " + response.message)
+            const restartToken = await new Token(db).RestartTokenByError({ip, device}, token, nonce);
+            return res.status(201).json({...restartToken, data: null});
         }
 
         return res.status(200).json({status:true, data: response.data, token: authorization.token, refreshed: authorization.refreshed});
     } catch (err) {
         console.error("github/languages: ", err)
-        return res.status(500).json({status: false, error: "Erro interno no servidor." });
+        if(authorization.auth === true){
+            const restartToken = await new Token(db).RestartTokenByError({ip, device}, token, nonce);
+            return res.status(201).json({...restartToken, data: null});
+        }else{
+            return res.status(500).json({status: false, error: "Erro interno no servidor e token não autorizado" });
+        }
     }
 })
 
@@ -355,28 +390,35 @@ app.post("/render/md", async(req, res) => {
         return res.status(400).json({ error: "token don't exist!" })
     }
 
-    try {
-        const authorization = await new Token(db).validade({ip, device}, token, nonce)
-        
-        if(!authorization.status){
-            return res.status(400).json({ error: authorization.message })
-        }
+    const authorization = await new Token(db).validade({ip, device}, token, nonce)
+    
+    if(!authorization.status){
+        return res.status(400).json({ error: authorization.message })
+    }
 
-        if(!authorization.auth){
-            return res.status(401).json({ error: "Unauthorized token"}) 
-        }
+    if(!authorization.auth){
+        return res.status(401).json({ error: "Unauthorized token"}) 
+    }
+    try {
 
         const RenderService = new Render()
         const response = await RenderService.MdToHtml(markdownContent)
 
         if(!response.status){
-            return res.status(500).json({ error: response.message });
+            console.log("ERROR 500, " + response.message)
+            const restartToken = await new Token(db).RestartTokenByError({ip, device}, authorization.token ,token, nonce);
+            return res.status(201).json({...restartToken, data: null});
         }
 
         return res.status(200).json({status:true, data: response.data, token: authorization.token, refreshed: authorization.refreshed});
     } catch (err) {
         console.error("render/md: ", err)
-        return res.status(500).json({status: false, error: "Erro interno no servidor." });
+        if(authorization.auth === true){
+            const restartToken = await new Token(db).RestartTokenByError({ip, device}, token, nonce);
+            return res.status(201).json({...restartToken, data: null});
+        }else{
+            return res.status(500).json({status: false, error: "Erro interno no servidor e token não autorizado" });
+        }
     }
 })
 

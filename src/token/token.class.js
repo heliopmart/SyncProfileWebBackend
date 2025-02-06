@@ -49,6 +49,12 @@ module.exports = class Token{
 
             await this._db.collection("auth_token").doc(randomHash).set(tokenData);
 
+
+            console.log("LOG Validate: ")
+            console.log(`Nonce enviado pelo client: ${nonce}`)
+            console.log(`token: ${token}`)
+            console.log("________________________")
+
             return {
                 status: true,
                 token,
@@ -76,8 +82,8 @@ module.exports = class Token{
 
             try {
                 let decoded;
+                decoded = jwt.verify(token, `${process.env.JWT_SECRET_KEYS}${process.env.JWT_KEYS}`);
                 try {
-                    decoded = jwt.verify(token, `${process.env.JWT_SECRET_KEYS}${process.env.JWT_KEYS}`);
                 } catch (error) {
                     // Se o erro for de expiração, remover o token e criar um novo
                     if (error.name === "TokenExpiredError") {
@@ -91,6 +97,10 @@ module.exports = class Token{
                     }
                 }
 
+                if(!decoded){
+                    return { status: false, message: "Erro ao verificar validade do token 1/" };
+                }
+
                 // Buscar token no banco de dados
                 const storedTokenSnapshot = await this._db.collection("auth_token").doc(decoded.randomHash).get();
 
@@ -101,7 +111,14 @@ module.exports = class Token{
 
                 const storedData = storedTokenSnapshot.data();
 
-                if (storedData.ip != ip || storedData.device != device || storedData.token != token || (decoded.nonce != storedData.nonce) || decoded.nonce == newNonce) {                    
+                // console.log("LOG Validate: ")
+                // console.log(`decoded.nonce: ${decoded.nonce}`)
+                // console.log(`storedData.nonce: ${storedData.nonce}`)
+                // console.log(`newNonce: ${newNonce}`)
+                // console.log(`token: ${token}`)
+                // console.log("________________________")
+
+                if (storedData.ip != ip || storedData.device != device || storedData.token != token || (decoded.nonce != storedData.nonce) || decoded.nonce == newNonce) {                                        
                     return {auth: false, status: true, token: null, refreshed: false }
                 }
 
@@ -130,6 +147,45 @@ module.exports = class Token{
             }
         } catch (error) {
             return {status: false, message: "Erro interno ao verificar validade"}
+        }
+    }
+
+    async RestartTokenByError(dataUser, newToken, oldToken, oldNonce){
+        try{
+            if (!token || !dataUser.ip || !dataUser.device || !oldNonce) {
+                return {status: false, mensage: "Parâmetros inválidos"}
+            }
+
+            const ip = dataUser.ip;
+            const device = dataUser.device
+            const decoded = jwt.verify(newToken, `${process.env.JWT_SECRET_KEYS}${process.env.JWT_KEYS}`);
+
+            if(!decoded){
+                return { status: false, message: "Erro ao Restart Token 1/" };
+            }
+
+            if(ip != decoded.ip && device != decoded.device){
+                return { status: false, message: "Erro ao Restart Token 2/" };
+            }
+
+
+            if (!storedTokenSnapshot.exists) {
+                console.log(`Error: Token in bd not exist: ${storedTokenSnapshot}`)
+                return {auth: false, status: true, token: null, refreshed: false }
+            }
+
+            await this._db.collection("auth_token").doc(decoded.randomHash).update({
+                token: oldToken,
+                nonce: oldNonce,
+                usage_at: new Date().toISOString(),
+                refresh_at: new Date().toISOString()
+            });
+
+            return {auth: true, status: false, token: oldToken, refreshed: true }
+            // {status: true, data: response.data, token: authorization.token, refreshed: authorization.refreshed}
+        }catch(ex){
+            console.log(ex)
+            return {status: false, message: "Erro interno ao restartar o token 3/"}
         }
     }
 }
